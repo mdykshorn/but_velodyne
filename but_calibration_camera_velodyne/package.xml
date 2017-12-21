@@ -3,12 +3,14 @@
   <name>but_calibration_camera_velodyne</name>
   <version>0.1.0</version>
   <description>
-     Calibration node of the camera and Velodyne LiDAR
+     Fusion of camera and velodyne LIDAR
   </description>
 
   <maintainer email="ivelas@fit.vutbr.cz">Martin Velas</maintainer>
+  <maintainer email="mdd27@vt.edu">Morgan Dykshorn</maintainer>
   <license>LGPG</license>
   <author>Martin Velas</author>
+  <author>Morgan Dykshorn</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 

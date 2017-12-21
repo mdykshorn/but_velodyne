@@ -26,12 +26,9 @@ catkin_package(CATKIN_DEPENDS std_msgs )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_executable(calibration src/calibration-node.cpp src/Image.cpp src/Velodyne.cpp src/Similarity.cpp src/Calibration3DMarker.cpp )
-#target_link_libraries(calibration ${PCL_LIBRARIES})
-target_link_libraries(calibration ${catkin_LIBRARIES})
 
 add_executable(coloring src/coloring-node.cpp src/Image.cpp src/Velodyne.cpp )
 #target_link_libraries(coloring ${PCL_LIBRARIES})
 target_link_libraries(coloring ${catkin_LIBRARIES})
 
-# roslint_cpp()
+roslint_cpp()
