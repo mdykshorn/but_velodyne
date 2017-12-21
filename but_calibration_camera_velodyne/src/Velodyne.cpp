@@ -23,11 +23,9 @@ using namespace ros;
 
 namespace but_calibration_camera_velodyne
 {
-
-Velodyne::Velodyne::Velodyne(PointCloud<Point> _point_cloud) :
-    point_cloud(_point_cloud)
+Velodyne::Velodyne::Velodyne(PointCloud<Point> _point_cloud) : point_cloud(_point_cloud)
 {
-  getRings(); // range computation
+  getRings();  // range computation
 }
 
 Velodyne::Velodyne Velodyne::Velodyne::transform(float x, float y, float z, float rot_x, float rot_y, float rot_z)
@@ -44,13 +42,12 @@ Velodyne::Velodyne Velodyne::Velodyne::transform(vector<float> DoF)
   return transform(DoF[0], DoF[1], DoF[2], DoF[3], DoF[4], DoF[5]);
 }
 
-Mat Velodyne::Velodyne::project(Mat projection_matrix, Rect frame, PointCloud<Point> *visible_points)
+Mat Velodyne::Velodyne::project(Mat projection_matrix, Rect frame, PointCloud<Point>* visible_points)
 {
   Mat plane = cv::Mat::zeros(frame.size(), CV_32FC1);
 
   for (PointCloud<Point>::iterator pt = point_cloud.points.begin(); pt < point_cloud.points.end(); pt++)
   {
-
     // behind the camera
     if (pt->z < 0)
     {
@@ -66,7 +63,7 @@ Mat Velodyne::Velodyne::project(Mat projection_matrix, Rect frame, PointCloud<Po
         visible_points->push_back(*pt);
       }
 
-      //cv::circle(plane, xy, 3, intensity, -1);
+      // cv::circle(plane, xy, 3, intensity, -1);
       plane.at<float>(xy) = intensity;
     }
   }
@@ -74,8 +71,8 @@ Mat Velodyne::Velodyne::project(Mat projection_matrix, Rect frame, PointCloud<Po
   Mat plane_gray;
   cv::normalize(plane, plane_gray, 0, 255, NORM_MINMAX, CV_8UC1);
   dilate(plane_gray, plane_gray, Mat());
-  //Image::Image plane_img(plane_gray);
-  //return plane_img.computeIDTEdgeImage();
+  // Image::Image plane_img(plane_gray);
+  // return plane_img.computeIDTEdgeImage();
 
   return plane_gray;
 }
@@ -83,15 +80,15 @@ Mat Velodyne::Velodyne::project(Mat projection_matrix, Rect frame, PointCloud<Po
 Mat Velodyne::Velodyne::project(Mat projection_matrix, Rect frame, Mat image)
 {
   Mat plane = this->project(projection_matrix, frame, NULL);
-  //equalizeHist(plane, plane);
-  //equalizeHist(image, image);
+  // equalizeHist(plane, plane);
+  // equalizeHist(image, image);
 
   ROS_ASSERT(frame.width == image.cols && frame.height == image.rows);
   Mat empty = Mat::zeros(frame.size(), CV_8UC1);
 
   Mat result_channel(frame.size(), CV_8UC3);
-  Mat in[] = {image, empty, plane};
-  int from_to[] = {0, 0, 1, 1, 2, 2};
+  Mat in[] = { image, empty, plane };
+  int from_to[] = { 0, 0, 1, 1, 2, 2 };
   mixChannels(in, 3, &result_channel, 1, from_to, 3);
   return result_channel;
 }
@@ -124,7 +121,7 @@ void Velodyne::Velodyne::intensityByDiff(Processing processing)
 
   for (vector<vector<Point*> >::iterator ring = rings.begin(); ring < rings.end(); ring++)
   {
-    Point* prev, *succ;
+    Point *prev, *succ;
     if (ring->empty())
     {
       continue;
@@ -141,10 +138,10 @@ void Velodyne::Velodyne::intensityByDiff(Processing processing)
       switch (processing)
       {
         case Processing::DISTORTIONS:
-          (*pt)->intensity = MAX( MAX( prev->range-(*pt)->range, succ->range-(*pt)->range), 0) * 10;
+          (*pt)->intensity = MAX(MAX(prev->range - (*pt)->range, succ->range - (*pt)->range), 0) * 10;
           break;
         case Processing::INTENSITY_EDGES:
-          new_intensity = MAX( MAX( last_intensity-(*pt)->intensity, succ->intensity-(*pt)->intensity), 0) * 10;
+          new_intensity = MAX(MAX(last_intensity - (*pt)->intensity, succ->intensity - (*pt)->intensity), 0) * 10;
           last_intensity = (*pt)->intensity;
           (*pt)->intensity = new_intensity;
           break;
@@ -158,9 +155,9 @@ void Velodyne::Velodyne::intensityByDiff(Processing processing)
   normalizeIntensity(0.0, 1.0);
 }
 
-PointCloud<PointXYZ> *Velodyne::Velodyne::toPointsXYZ()
+PointCloud<PointXYZ>* Velodyne::Velodyne::toPointsXYZ()
 {
-  PointCloud<PointXYZ> *new_cloud = new PointCloud<PointXYZ>();
+  PointCloud<PointXYZ>* new_cloud = new PointCloud<PointXYZ>();
   for (PointCloud<Point>::iterator pt = point_cloud.points.begin(); pt < point_cloud.points.end(); pt++)
   {
     new_cloud->push_back(PointXYZ(pt->x, pt->y, pt->z));
@@ -183,10 +180,10 @@ void Velodyne::Velodyne::normalizeIntensity(float min, float max)
   for (PointCloud<Point>::iterator pt = point_cloud.points.begin(); pt < point_cloud.points.end(); pt++)
   {
     pt->intensity = (pt->intensity - min_found) / (max_found - min_found) * (max - min) + min;
-//		cerr << pt->intensity << " ";
+    //		cerr << pt->intensity << " ";
   }
 
-//	cerr << endl;
+  //	cerr << endl;
 }
 
 Velodyne::Velodyne Velodyne::Velodyne::threshold(float thresh)
@@ -214,12 +211,12 @@ vector<Velodyne::Velodyne> Velodyne::Velodyne::depthSegmentation(int segment_cou
   vector<Velodyne> segments(segment_counts);
 
   Mat ranges(point_cloud.size(), 1, CV_32FC1);
-//	Mat indicies(point_cloud.size(), 1, CV_32SC1);
+  //	Mat indicies(point_cloud.size(), 1, CV_32SC1);
   for (int i = 0; i < point_cloud.size(); i++)
   {
     ranges.at<float>(i) = point_cloud[i].range;
   }
-  //kmeans(ranges, segment_counts, indicies, TermCriteria(TermCriteria::MAX_ITER, 3, 0), 3, KMEANS_PP_CENTERS);
+  // kmeans(ranges, segment_counts, indicies, TermCriteria(TermCriteria::MAX_ITER, 3, 0), 3, KMEANS_PP_CENTERS);
 
   Mat ranges_uchar;
   normalize(ranges, ranges_uchar, 0, 255, NORM_MINMAX, CV_8UC1);
@@ -252,4 +249,4 @@ PointCloud<PointXYZRGB> Velodyne::Velodyne::colour(cv::Mat frame_rgb, cv::Mat P)
   return color_cloud;
 }
 
-}
+}  // namespace but_calibration_camera_velodyne

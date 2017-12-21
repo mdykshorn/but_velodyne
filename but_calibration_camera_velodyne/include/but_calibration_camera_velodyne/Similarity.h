@@ -24,13 +24,12 @@
 #include <but_calibration_camera_velodyne/Image.h>
 #include <but_calibration_camera_velodyne/Velodyne.h>
 
-namespace but_calibration_camera_velodyne {
-
+namespace but_calibration_camera_velodyne
+{
 class Similarity
 {
 public:
-  Similarity(cv::Mat _X, cv::Mat _Y) :
-      X(_X), Y(_Y), H_X(-1.0), H_Y(-1.0), H_XY(-1.0)
+  Similarity(cv::Mat _X, cv::Mat _Y) : X(_X), Y(_Y), H_X(-1.0), H_Y(-1.0), H_XY(-1.0)
   {
     ROS_ASSERT(X.type() == CV_8UC1);
     ROS_ASSERT(Y.type() == CV_8UC1);
@@ -65,7 +64,9 @@ public:
 
   enum Criteria
   {
-    MI, NMI, CC
+    MI,
+    NMI,
+    CC
   };
 
   static Criteria getCriteria(std::string s)
@@ -96,10 +97,9 @@ public:
     }
   }
 
-  float static projectionError(cv::Mat &segmentation, std::vector<Velodyne::Velodyne> &segments, cv::Mat P,
+  float static projectionError(cv::Mat& segmentation, std::vector<Velodyne::Velodyne>& segments, cv::Mat P,
                                bool verbose = false)
   {
-
     cv::Rect frame(cv::Point(0, 0), segmentation.size());
     int total_miss = 0;
     int total = 0;
@@ -136,13 +136,12 @@ public:
 
   float static projectionError(Image::Image img, Velodyne::Velodyne scan, cv::Mat P, bool verbose = false)
   {
-
     cv::Mat segmentation = img.segmentation(2);
     std::vector<Velodyne::Velodyne> segments = scan.depthSegmentation(2);
     return projectionError(segmentation, segments, P, verbose);
   }
 
-  float static edgeSimilarity(Image::Image &img, Velodyne::Velodyne &scan, cv::Mat &P)
+  float static edgeSimilarity(Image::Image& img, Velodyne::Velodyne& scan, cv::Mat& P)
   {
     cv::Rect frame(cv::Point(0, 0), img.size());
     float CC = 0;
@@ -162,14 +161,14 @@ protected:
   void computeEntropies();
 
 protected:
-  cv::Mat X, Y; // compared images
+  cv::Mat X, Y;  // compared images
 
-  float H_X, H_Y; // entropy of image X, Y
-  float H_XY; // joint entropy
+  float H_X, H_Y;  // entropy of image X, Y
+  float H_XY;      // joint entropy
 
   static const int INTENSITIES = 256;
 };
 
-};
+};  // namespace but_calibration_camera_velodyne
 
 #endif /* SIMILARITY_H_ */

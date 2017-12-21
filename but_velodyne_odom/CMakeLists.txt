@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(but_velodyne_odom)
-
+#[[
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -37,7 +37,7 @@ link_directories( ${PCL_LIBRARY_DIRS} ${ButVELODYNE_LIBRARY_DIRS})
 catkin_package(CATKIN_DEPENDS velodyne_msgs nav_msgs sensor_msgs)
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_library( butveloodom 
+add_library( butveloodom
              src/but_velodyne_lib/collar_line_odom.cpp
              )
 target_link_libraries(butveloodom ${catkin_LIBRARIES} ${OGRE_LIBRARIES} ${OpenCV_LIBRARIES} ${ButVELODYNE_LIBRARIES} ${PCL_LIBRARIES})
@@ -207,10 +207,10 @@ target_link_libraries( butvelo_collar_line_odom_nodelet butveloodom)
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-install(FILES 
+install(FILES
   nodelets.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-  
+
 roslint_cpp()
 
 
@@ -226,3 +226,4 @@ roslint_cpp()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+]]

@@ -15,7 +15,6 @@
 
 namespace but_calibration_camera_velodyne
 {
-
 typedef struct
 {
   cv::Mat frame_rgb;
@@ -30,7 +29,7 @@ class Calibration6DoF
 {
 public:
   std::vector<float> DoF;
-  float value; // NaN = wrong calibration
+  float value;  // NaN = wrong calibration
 
 public:
   Calibration6DoF(float x, float y, float z, float x_r, float y_r, float z_r, float val)
@@ -67,12 +66,12 @@ public:
     DoF.push_back(z_r);
   }
 
-  bool operator <=(Calibration6DoF &other)
+  bool operator<=(Calibration6DoF& other)
   {
     return this->value <= other.value;
   }
 
-  void operator +=(Calibration6DoF &other)
+  void operator+=(Calibration6DoF& other)
   {
     this->value += other.value;
     ROS_ASSERT(this->DoF.size() == other.DoF.size());
@@ -82,7 +81,7 @@ public:
     }
   }
 
-  void operator /=(float div)
+  void operator/=(float div)
   {
     this->value /= div;
     for (size_t i = 0; i < DoF.size(); i++)
@@ -94,14 +93,14 @@ public:
   void print(void)
   {
     std::cout << "score: " << value << ";\t 6DoF: [" << DoF[0] << " " << DoF[1] << " " << DoF[2] << " " << DoF[3] << " "
-        << DoF[4] << " " << DoF[5] << "]" << std::endl;
+              << DoF[4] << " " << DoF[5] << "]" << std::endl;
   }
 };
 
 class Calibration
 {
 public:
-  static CalibrationInputs loadArgumets(int argc, char *argv[], bool DoF = false)
+  static CalibrationInputs loadArgumets(int argc, char* argv[], bool DoF = false)
   {
     CalibrationInputs inputs;
     int expected_arguments = DoF ? 10 : 4;
@@ -140,7 +139,7 @@ public:
     {
       perror(inputs.error.c_str());
       std::cerr << argv[0] << " <frame> <projection-matrix> <point-cloud>"
-          << (DoF ? " <x> <y> <z> <rot-x> <rot-y> <rot-z>\n" : "\n");
+                << (DoF ? " <x> <y> <z> <rot-x> <rot-y> <rot-z>\n" : "\n");
       exit(1);
     }
     return inputs;
@@ -155,7 +154,9 @@ public:
     std::vector<float> translation(3, 0);
     enum INDEX
     {
-      X = 0, Y = 1, Z = 2
+      X = 0,
+      Y = 1,
+      Z = 2
     };
 
     float focal_len = projection.at<float>(0, 0);
@@ -169,11 +170,11 @@ public:
     for (size_t i = 0; i < image.size(); i++)
     {
       // t_x:
-      translation[INDEX::X] += (image[i].x - principal_x) * (velodyne[i].z + translation[INDEX::Z]) / focal_len
-          - velodyne[i].x;
+      translation[INDEX::X] +=
+          (image[i].x - principal_x) * (velodyne[i].z + translation[INDEX::Z]) / focal_len - velodyne[i].x;
       // t_y:
-      translation[INDEX::Y] += (image[i].y - principal_y) * (velodyne[i].z + translation[INDEX::Z]) / focal_len
-          - velodyne[i].y;
+      translation[INDEX::Y] +=
+          (image[i].y - principal_y) * (velodyne[i].z + translation[INDEX::Z]) / focal_len - velodyne[i].y;
     }
     translation[INDEX::X] /= image.size();
     translation[INDEX::Y] /= image.size();
@@ -184,7 +185,7 @@ public:
 
   static void calibrationRefinement(Image::Image img, Velodyne::Velodyne scan, cv::Mat P, float x_rough, float y_rough,
                                     float z_rough, float max_translation, float max_rotation, unsigned steps,
-                                    Calibration6DoF &best_calibration, Calibration6DoF &average)
+                                    Calibration6DoF& best_calibration, Calibration6DoF& average)
   {
     scan.intensityByRangeDiff();
     scan = scan.threshold(0.05);
@@ -205,35 +206,29 @@ public:
     float rough_val = Similarity::edgeSimilarity(img, transformed, P);
 
     best_calibration.set(x_rough, y_rough, z_rough, 0, 0, 0, rough_val);
-    //cout << "rough:\t";
-    //best_calibration.print();
+    // cout << "rough:\t";
+    // best_calibration.print();
 
     int counter = 0;
 
     float x = x_min;
     for (size_t xi = 0; xi < steps; xi++)
     {
-
       float y = y_min;
       for (size_t yi = 0; yi < steps; yi++)
       {
-
         float z = z_min;
         for (size_t zi = 0; zi < steps; zi++)
         {
-
           float x_r = x_rot_min;
           for (size_t x_ri = 0; x_ri < steps; x_ri++)
           {
-
             float y_r = y_rot_min;
             for (size_t y_ri = 0; y_ri < steps; y_ri++)
             {
-
               float z_r = z_rot_min;
               for (size_t z_ri = 0; z_ri < steps; z_ri++)
               {
-
                 Velodyne::Velodyne transformed = scan.transform(x, y, z, x_r, y_r, z_r);
                 float value = Similarity::edgeSimilarity(img, transformed, P);
                 Calibration6DoF calibration(x, y, z, x_r, y_r, z_r, value);
@@ -247,8 +242,8 @@ public:
                   average += calibration;
                   counter++;
                 }
-                //cout << counter << ".\t";
-                //calibration.print();
+                // cout << counter << ".\t";
+                // calibration.print();
 
                 z_r += step_rot;
               }
@@ -264,9 +259,8 @@ public:
     }
     average /= counter;
   }
-
 };
 
-};
+};  // namespace but_calibration_camera_velodyne
 
 #endif

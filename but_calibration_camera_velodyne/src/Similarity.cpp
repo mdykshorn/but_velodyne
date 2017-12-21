@@ -12,7 +12,6 @@ using namespace cv;
 
 namespace but_calibration_camera_velodyne
 {
-
 void Similarity::computeEntropies()
 {
   vector<float> histogram_X(INTENSITIES, 0);
@@ -59,4 +58,4 @@ void Similarity::computeEntropies()
   }
 }
 
-}
+}  // namespace but_calibration_camera_velodyne

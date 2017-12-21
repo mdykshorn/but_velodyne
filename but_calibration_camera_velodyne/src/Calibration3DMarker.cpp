@@ -14,13 +14,12 @@ using namespace cv;
 using namespace pcl;
 using namespace ros;
 
-namespace but_calibration_camera_velodyne {
-
-Calibration3DMarker::Calibration3DMarker(cv::Mat _frame_gray, cv::Mat _P, ::PointCloud<Velodyne::Point> _pc,
-                                         float _circ_distance, float _radius) :
-    frame_gray(_frame_gray), P(_P), pc(_pc), circ_distance(_circ_distance), radius(_radius)
+namespace but_calibration_camera_velodyne
 {
-
+Calibration3DMarker::Calibration3DMarker(cv::Mat _frame_gray, cv::Mat _P, ::PointCloud<Velodyne::Point> _pc,
+                                         float _circ_distance, float _radius)
+  : frame_gray(_frame_gray), P(_P), pc(_pc), circ_distance(_circ_distance), radius(_radius)
+{
   // ---------------- GET PLANE ----------------
 
   Velodyne::Velodyne scan(pc);
@@ -35,8 +34,7 @@ Calibration3DMarker::Calibration3DMarker(cv::Mat _frame_gray, cv::Mat _P, ::Poin
 
   PointCloud<PointXYZ>::Ptr xyz_cloud_ptr(thresholded_scan.toPointsXYZ());
 
-  SampleConsensusModelPlane<PointXYZ>::Ptr model_p(
-      new ::SampleConsensusModelPlane<PointXYZ>(xyz_cloud_ptr));
+  SampleConsensusModelPlane<PointXYZ>::Ptr model_p(new ::SampleConsensusModelPlane<PointXYZ>(xyz_cloud_ptr));
   RandomSampleConsensus<PointXYZ> ransac(model_p);
   ransac.setDistanceThreshold(0.05);
   ransac.computeModel();
@@ -51,8 +49,7 @@ Calibration3DMarker::Calibration3DMarker(cv::Mat _frame_gray, cv::Mat _P, ::Poin
   for (int i = 0; i < 2; i++)
   {
     PointCloud<PointXYZ>::Ptr plane_ptr(new PointCloud<PointXYZ>(plane));
-    SampleConsensusModelLine<PointXYZ>::Ptr model_l(
-        new SampleConsensusModelLine<PointXYZ>(plane_ptr));
+    SampleConsensusModelLine<PointXYZ>::Ptr model_l(new SampleConsensusModelLine<PointXYZ>(plane_ptr));
     RandomSampleConsensus<PointXYZ> ransac_l(model_l);
     ransac_l.setDistanceThreshold(0.02);
     ransac_l.computeModel();
@@ -66,10 +63,9 @@ Calibration3DMarker::Calibration3DMarker(cv::Mat _frame_gray, cv::Mat _P, ::Poin
     remove_inliers(*plane_ptr, line_inliers, plane_no_line);
     plane = plane_no_line;
   }
-
 }
 
-bool Calibration3DMarker::detectCirclesInImage(vector<Point2f> &centers, vector<float> &radiuses)
+bool Calibration3DMarker::detectCirclesInImage(vector<Point2f>& centers, vector<float>& radiuses)
 {
   Image::Image img(frame_gray);
   Image::Image img_edge(img.computeEdgeImage());
@@ -77,12 +73,12 @@ bool Calibration3DMarker::detectCirclesInImage(vector<Point2f> &centers, vector<
                                  centers, radiuses);
 }
 
-bool Calibration3DMarker::detectCirclesInPointCloud(vector<Point3f> &centers, vector<float> &radiuses)
+bool Calibration3DMarker::detectCirclesInPointCloud(vector<Point3f>& centers, vector<float>& radiuses)
 {
   PointCloud<PointXYZ>::Ptr detection_cloud(new PointCloud<PointXYZ>);
   *detection_cloud += this->plane;
 
-  float tolerance = 0.03; // 3cm
+  float tolerance = 0.03;  // 3cm
   int round = 1;
   vector<PointXYZ> spheres_centers;
   bool detected = false;
@@ -123,19 +119,16 @@ bool Calibration3DMarker::detectCirclesInPointCloud(vector<Point3f> &centers, ve
   return true;
 }
 
-vector<PointXYZ> Calibration3DMarker::detect4spheres(PointCloud<PointXYZ>::Ptr plane,
-                                                          vector<float> &radiuses)
+vector<PointXYZ> Calibration3DMarker::detect4spheres(PointCloud<PointXYZ>::Ptr plane, vector<float>& radiuses)
 {
-
   radiuses.clear();
   vector<PointXYZ> centers;
   std::vector<int> inliers_indicies;
-  PointCloud<PointXYZ> *four_spheres = new PointCloud<PointXYZ>();
+  PointCloud<PointXYZ>* four_spheres = new PointCloud<PointXYZ>();
   float tolerance = 0.02;
   for (int i = 0; i < 4; i++)
   {
-    SampleConsensusModelSphere<PointXYZ>::Ptr model_s(
-        new SampleConsensusModelSphere<PointXYZ>(plane));
+    SampleConsensusModelSphere<PointXYZ>::Ptr model_s(new SampleConsensusModelSphere<PointXYZ>(plane));
     model_s->setRadiusLimits(0.08, 0.09);
     RandomSampleConsensus<PointXYZ> ransac_sphere(model_s);
     ransac_sphere.setDistanceThreshold(tolerance);
@@ -149,14 +142,14 @@ vector<PointXYZ> Calibration3DMarker::detect4spheres(PointCloud<PointXYZ>::Ptr p
     }
     Eigen::VectorXf coeficients;
     ransac_sphere.getModelCoefficients(coeficients);
-    //cerr << i + 1 << ". circle: " << coeficients << endl << endl;
+    // cerr << i + 1 << ". circle: " << coeficients << endl << endl;
 
     PointCloud<PointXYZ>::Ptr outliers(new PointCloud<PointXYZ>);
     PointCloud<PointXYZ>::Ptr inliers(new PointCloud<PointXYZ>);
     remove_inliers<PointXYZ>(*plane, inliers_indicies, *outliers);
     copyPointCloud<PointXYZ>(*plane, inliers_indicies, *inliers);
     plane = outliers;
-    //view(plane);
+    // view(plane);
 
     *four_spheres += *inliers;
     PointXYZ middle(coeficients(0), coeficients(1), coeficients(2));
@@ -185,7 +178,7 @@ bool orderY(PointXYZ p1, PointXYZ p2)
   return p1.y < p2.y;
 }
 
-void Calibration3DMarker::order4spheres(vector<PointXYZ> &spheres_centers)
+void Calibration3DMarker::order4spheres(vector<PointXYZ>& spheres_centers)
 {
   ROS_ASSERT(spheres_centers.size() == 4);
   sort(spheres_centers.begin(), spheres_centers.end(), orderY);
@@ -198,8 +191,7 @@ float euclid_dist(const PointXYZ p1, const PointXYZ p2)
   return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2));
 }
 
-bool Calibration3DMarker::verify4spheres(const vector<PointXYZ> &spheres_centers, float straight_distance,
-                                         float delta)
+bool Calibration3DMarker::verify4spheres(const vector<PointXYZ>& spheres_centers, float straight_distance, float delta)
 {
   ROS_ASSERT(spheres_centers.size() == 4);
 
@@ -211,11 +203,11 @@ bool Calibration3DMarker::verify4spheres(const vector<PointXYZ> &spheres_centers
 
   bool res = true;
   for (vector<pair<int, int> >::iterator neighbors = neighbour_indexes.begin(); neighbors < neighbour_indexes.end();
-      neighbors++)
+       neighbors++)
   {
-    float error = abs(
-        euclid_dist(spheres_centers[neighbors->first], spheres_centers[neighbors->second]) - straight_distance);
-    //cerr << "error: " << error << endl;
+    float error =
+        abs(euclid_dist(spheres_centers[neighbors->first], spheres_centers[neighbors->second]) - straight_distance);
+    // cerr << "error: " << error << endl;
     if (error > delta)
       res = false;
   }
@@ -228,8 +220,8 @@ bool Calibration3DMarker::verify4spheres(const vector<PointXYZ> &spheres_centers
  * x   x
  * x x x
  */
-vector<PointXYZ> Calibration3DMarker::generate_possible_centers(const vector<PointXYZ> &spheres_centers,
-                                                                     float straight_distance)
+vector<PointXYZ> Calibration3DMarker::generate_possible_centers(const vector<PointXYZ>& spheres_centers,
+                                                                float straight_distance)
 {
   vector<PointXYZ> possible_centers;
 
@@ -240,7 +232,7 @@ vector<PointXYZ> Calibration3DMarker::generate_possible_centers(const vector<Poi
       for (int dy = -1; dy <= 1; dy++)
       {
         if (dx || dy)
-        { // omitting found center (may be false detection)
+        {  // omitting found center (may be false detection)
           PointXYZ new_center = *c;
           new_center.x += dx * straight_distance;
           new_center.y += dy * straight_distance;
@@ -253,18 +245,16 @@ vector<PointXYZ> Calibration3DMarker::generate_possible_centers(const vector<Poi
   return possible_centers;
 }
 
-void Calibration3DMarker::generate_possible_points(PointCloud<PointXYZ> &plane,
+void Calibration3DMarker::generate_possible_points(PointCloud<PointXYZ>& plane,
                                                    PointCloud<PointXYZ>::Ptr detection_cloud,
-                                                   const vector<PointXYZ> &possible_centers, float radius,
+                                                   const vector<PointXYZ>& possible_centers, float radius,
                                                    float tolerance)
 {
-
   detection_cloud->clear();
   for (PointCloud<PointXYZ>::iterator pt = plane.begin(); pt < plane.end(); pt++)
   {
     int votes = 0;
-    for (vector<PointXYZ>::const_iterator center = possible_centers.begin(); center < possible_centers.end();
-        center++)
+    for (vector<PointXYZ>::const_iterator center = possible_centers.begin(); center < possible_centers.end(); center++)
     {
       if (euclid_dist(*pt, *center) < radius + tolerance)
       {
@@ -281,7 +271,6 @@ void Calibration3DMarker::generate_possible_points(PointCloud<PointXYZ> &plane,
 vector<PointXYZ> Calibration3DMarker::refine4centers(vector<PointXYZ> centers,
                                                      PointCloud<PointXYZ>::Ptr detection_cloud)
 {
-
   float z_coord = 0;
   for (PointCloud<PointXYZ>::iterator pt = detection_cloud->begin(); pt < detection_cloud->end(); pt++)
   {
@@ -297,4 +286,4 @@ vector<PointXYZ> Calibration3DMarker::refine4centers(vector<PointXYZ> centers,
   return centers;
 }
 
-}
+}  // namespace but_calibration_camera_velodyne

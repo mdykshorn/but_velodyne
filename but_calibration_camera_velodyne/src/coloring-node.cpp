@@ -50,12 +50,11 @@ vector<float> DoF;
 void cameraInfoCallback(const sensor_msgs::CameraInfoConstPtr& msg)
 {
   float p[12];
-  float *pp = p;
+  float* pp = p;
   for (boost::array<double, 12ul>::const_iterator i = msg->P.begin(); i != msg->P.end(); i++)
   {
     *pp = (float)(*i);
     pp++;
-
   }
 
   cv::Mat(3, 4, CV_32FC1, &p).copyTo(projection_matrix);
@@ -69,7 +68,6 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg)
 {
-
   // if no rgb frame for coloring:
   if (frame_rgb.data == NULL)
   {

@@ -14,19 +14,15 @@ using namespace cv;
 
 namespace but_calibration_camera_velodyne
 {
-
 namespace Image
 {
-
 cv::Mat Image::distance_weights;
 
 float const Image::gamma = 0.98;
 float const Image::alpha = 0.33;
 
-Image::Image(cv::Mat _img) :
-    img(_img)
+Image::Image(cv::Mat _img) : img(_img)
 {
-
   // computing Lookup Table of weights for inverse distance transform
   int middle = MAX(img.cols, img.rows);
   int width = middle * 2 + 1;
@@ -39,14 +35,13 @@ Image::Image(cv::Mat _img) :
       Image::distance_weights.at<float>(middle + i) = weight;
       Image::distance_weights.at<float>(middle - i) = weight;
     }
-//		cerr << "weights: " << distance_weights << endl << endl;
+    //		cerr << "weights: " << distance_weights << endl << endl;
   }
 }
 
 // outputs grayscle CV_8UC1 matrix
 Mat Image::computeEdgeImage()
 {
-
   Mat grayImg;
   if (this->img.channels() > 1)
   {
@@ -74,7 +69,7 @@ Mat Image::computeEdgeImage()
   return edges;
 }
 
-Mat Image::computeIDTEdgeImage(Mat &edge_img)
+Mat Image::computeIDTEdgeImage(Mat& edge_img)
 {
   Mat edges;
   edge_img.convertTo(edges, CV_32FC1);
@@ -134,15 +129,15 @@ Mat Image::computeIDTEdgeImage()
   return grayscale_idt_edge_img;
 }
 
-bool order_X(const Vec3f &p1, const Vec3f &p2)
+bool order_X(const Vec3f& p1, const Vec3f& p2)
 {
   return p1.val[0] < p2.val[0];
 }
-bool order_Y(const Vec3f &p1, const Vec3f &p2)
+bool order_Y(const Vec3f& p1, const Vec3f& p2)
 {
   return p1.val[1] < p2.val[1];
 }
-bool Image::detect4Circles(float canny_thresh, float center_thresh, vector<Point2f> &centers, vector<float> &radiuses)
+bool Image::detect4Circles(float canny_thresh, float center_thresh, vector<Point2f>& centers, vector<float>& radiuses)
 {
   vector<Vec3f> circles;
   radiuses.clear();
@@ -210,13 +205,13 @@ Mat Image::segmentation(int segment_count)
   {
     src_gray = img;
   }
-  src_gray = src_gray.reshape(src_gray.channels(), src_gray.rows * src_gray.cols); // to single row
+  src_gray = src_gray.reshape(src_gray.channels(), src_gray.rows * src_gray.cols);  // to single row
 
   Mat segmentation;
   adaptiveThreshold(img, segmentation, 1, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 401, 2);
   return segmentation;
 }
 
-}/* NAMESPACE Image */
+} /* NAMESPACE Image */
 
-}
+}  // namespace but_calibration_camera_velodyne

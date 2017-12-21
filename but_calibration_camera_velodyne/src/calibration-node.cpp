@@ -42,8 +42,8 @@ string CAMERA_INFO_TOPIC;
 string VELODYNE_TOPIC;
 
 // marker properties:
-double STRAIGHT_DISTANCE; // 23cm
-double RADIUS; // 8.25cm
+double STRAIGHT_DISTANCE;  // 23cm
+double RADIUS;             // 8.25cm
 
 Mat projection_matrix;
 Mat frame_rgb;
@@ -87,8 +87,8 @@ Calibration6DoF calibration(bool doRefinement = false)
   float radius3D = accumulate(radii3D.begin(), radii3D.end(), 0.0) / radii3D.size();
 
   // rough calibration
-  Calibration6DoF translation = Calibration::findTranslation(centers2D, centers3D, projection_matrix, radius2D,
-                                                             radius3D);
+  Calibration6DoF translation =
+      Calibration::findTranslation(centers2D, centers3D, projection_matrix, radius2D, radius3D);
 
   if (doRefinement)
   {
@@ -113,10 +113,9 @@ Calibration6DoF calibration(bool doRefinement = false)
 void callback(const sensor_msgs::ImageConstPtr& msg_img, const sensor_msgs::CameraInfoConstPtr& msg_info,
               const sensor_msgs::PointCloud2ConstPtr& msg_pc)
 {
-
   ROS_INFO_STREAM("Image received at " << msg_img->header.stamp.toSec());
-  ROS_INFO_STREAM( "Camera info received at " << msg_info->header.stamp.toSec());
-  ROS_INFO_STREAM( "Velodyne scan received at " << msg_pc->header.stamp.toSec());
+  ROS_INFO_STREAM("Camera info received at " << msg_info->header.stamp.toSec());
+  ROS_INFO_STREAM("Velodyne scan received at " << msg_pc->header.stamp.toSec());
 
   // Loading camera image:
   cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg_img, sensor_msgs::image_encodings::BGR8);
@@ -124,7 +123,7 @@ void callback(const sensor_msgs::ImageConstPtr& msg_img, const sensor_msgs::Came
 
   // Loading projection matrix:
   float p[12];
-  float *pp = p;
+  float* pp = p;
   for (boost::array<double, 12ul>::const_iterator i = msg_info->P.begin(); i != msg_info->P.end(); i++)
   {
     *pp = (float)(*i);
@@ -183,7 +182,8 @@ int main(int argc, char** argv)
   message_filters::Subscriber<sensor_msgs::CameraInfo> info_sub(n, CAMERA_INFO_TOPIC, 1);
   message_filters::Subscriber<sensor_msgs::PointCloud2> cloud_sub(n, VELODYNE_TOPIC, 1);
 
-  typedef sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::CameraInfo, sensor_msgs::PointCloud2> MySyncPolicy;
+  typedef sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::CameraInfo, sensor_msgs::PointCloud2>
+      MySyncPolicy;
   Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), image_sub, info_sub, cloud_sub);
   sync.registerCallback(boost::bind(&callback, _1, _2, _3));
 

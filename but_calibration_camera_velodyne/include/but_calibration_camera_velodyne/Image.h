@@ -13,13 +13,12 @@
 
 namespace but_calibration_camera_velodyne
 {
-
 namespace Image
 {
-
 typedef enum
 {
-  IDT_EDGES, NONE
+  IDT_EDGES,
+  NONE
 } Processing;
 
 class Image
@@ -31,15 +30,15 @@ public:
 
   // Inverse Distance Tranform
   cv::Mat computeIDTEdgeImage();
-  cv::Mat computeIDTEdgeImage(cv::Mat &edge_img);
-  bool detect4Circles(float canny_thresh, float center_thresh, std::vector<cv::Point2f> &centers,
-                      std::vector<float> &radiuses);
+  cv::Mat computeIDTEdgeImage(cv::Mat& edge_img);
+  bool detect4Circles(float canny_thresh, float center_thresh, std::vector<cv::Point2f>& centers,
+                      std::vector<float>& radiuses);
   void threshold(int threshold)
   {
     cv::threshold(img, img, threshold, 255, cv::THRESH_TOZERO);
   }
 
-  void show(const char *name = "Image", int wait = 0)
+  void show(const char* name = "Image", int wait = 0)
   {
     cv::imshow(name, img);
     cv::waitKey(wait);
@@ -98,6 +97,6 @@ protected:
 } /* NAMESPACE Image*/
 ;
 
-};
+};  // namespace but_calibration_camera_velodyne
 
 #endif /* IMAGE_H_ */
